@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cohort Generator — Sabrina</title>
+  <link rel="stylesheet" href="css/sabrina.css">
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- Sidebar (same as index.html) -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-mark">S</span>
+      <span class="logo-sub">PROD</span>
+    </div>
+    <div class="nav-section">Inventory</div>
+    <a class="nav-item" href="#">Products</a>
+    <a class="nav-item" href="#">Programs</a>
+    <a class="nav-item" href="#">Cohorts</a>
+    <a class="nav-item" href="#">Program cohorts</a>
+    <div class="nav-section">Launch</div>
+    <a class="nav-item" href="index.html">Launch calendar</a>
+    <a class="nav-item active" href="generator.html">Cohort generator</a>
+    <div class="nav-section">Students</div>
+    <a class="nav-item" href="#">Contacts</a>
+    <a class="nav-item" href="#">Enrollments</a>
+    <div class="nav-section">Organizations</div>
+    <a class="nav-item" href="#">Organizations</a>
+    <a class="nav-item" href="#">Partners</a>
+  </nav>
+
+  <!-- Main -->
+  <div class="main">
+
+    <div class="topbar">
+      <div class="breadcrumb">
+        <a href="#">Home</a><span>›</span>
+        <a href="#">Launch</a><span>›</span>
+        <span>Cohort generator</span>
+      </div>
+      <div class="page-title-row">
+        <h1 class="page-title">Cohort generator</h1>
+        <div class="topbar-actions">
+          <button class="btn btn-outline" onclick="exportCSV()">Export CSV</button>
+          <button class="btn btn-primary" id="btn-copy-all" onclick="copyAllNames()">Copy all names</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!--
+        Generator config card.
+        Pick a month → select orgs → get the list of cohort instances to create.
+
+        Requirements Section 7: The sharing logic here implements the rules
+        for when partners can share a cohort instance vs. when they need separate ones.
+
+        ENGINEERING: The "Run" action should POST to /api/generator/run.
+        The client-side computation in generator.js is for the prototype only.
+      -->
+      <div class="config-card">
+
+        <div class="config-row">
+          <span class="config-row-label">Month</span>
+          <select class="filter-select" id="gen-month" style="font-size:13px;font-weight:600;padding:5px 10px">
+            <!-- Populated by generator.js -->
+          </select>
+          <span style="font-size:11px;color:#9E9E9E;margin-left:8px">
+            Cohort instances are calculated from org cadence rules and previous cohort dates
+          </span>
+        </div>
+
+        <div class="config-row" style="align-items:flex-start">
+          <span class="config-row-label" style="padding-top:6px">Orgs</span>
+          <div id="org-selector" class="org-selector">
+            <!-- Populated by generator.js -->
+          </div>
+          <div style="display:flex;gap:8px;margin-left:10px;flex-shrink:0">
+            <button class="btn btn-outline btn-sm" onclick="selectAllPartners()">All</button>
+            <button class="btn btn-outline btn-sm" onclick="clearAllPartners()">None</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Stats -->
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="stat-number muted" id="gen-stat-combos">—</div>
+          <div class="stat-label">Partner × SKU combos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number positive" id="gen-stat-instances">—</div>
+          <div class="stat-label">Instances to create</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number positive" id="gen-stat-saved">—</div>
+          <div class="stat-label">Saved by sharing</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="gen-stat-dates">—</div>
+          <div class="stat-label">Start dates</div>
+        </div>
+      </div>
+
+      <!--
+        Key: sharing rule explanation
+        This helps Ops understand why some partners share instances and others don't.
+      -->
+      <div style="background:#E3F2FD;border:1px solid #90CAF9;border-radius:3px;padding:10px 14px;margin-bottom:16px;font-size:11px;color:#1565C0;line-height:1.6">
+        <strong>Sharing rule:</strong> Partners share one cohort instance when they have the same SKU, same start date, and same early access date.
+        Early access date = previous cohort start date for that partner, which changes monthly.
+        Citizens Bank often gets its own instance because their biweekly cadence means a different EA date than monthly partners.
+        Pearson's T-15 deadline is handled at the program cohort level — it does not affect sharing eligibility.
+      </div>
+
+      <!-- Output table -->
+      <!--
+        Each row = one cohort instance to create in the LMS.
+        The instance name follows: p-chrys-EA[MMDD]-[sku]-26[MMDD]
+
+        Requirements Section 7.3:
+        - Shared instances show all partners with shared-style pills (green)
+        - Standalone instances show a single partner with amber badge
+        - Ops can copy instance names individually or all at once
+
+        ENGINEERING:
+        Add a "Create in LMS" button per row that calls the Sabrina/LMS API
+        to actually create the cohort. This would need the Chrysalis API integration.
+      -->
+      <div id="generator-output">
+        <!-- Rendered by generator.js -->
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/generator.js"></script>
+
+</body>
+</html>
